@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML Viewer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: #f8fafc;
+            color: #334155;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+
+        .editor-section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: #f1f5f9;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #475569;
+        }
+
+        .code-input {
+            width: 100%;
+            min-height: 200px;
+            padding: 1rem;
+            border: none;
+            outline: none;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            resize: vertical;
+            background: #fafafa;
+        }
+
+        .preview-frame {
+            width: 100%;
+            min-height: 300px;
+            border: none;
+            background: white;
+        }
+
+        .controls {
+            display: flex;
+            gap: 0.75rem;
+            padding: 1rem;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1;
+            min-width: 80px;
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e1;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0.5rem;
+            }
+
+            .header h1 {
+                font-size: 1.25rem;
+            }
+
+            .code-input {
+                font-size: 0.8rem;
+                min-height: 150px;
+            }
+
+            .preview-frame {
+                min-height: 250px;
+            }
+
+            .controls {
+                padding: 0.75rem;
+                gap: 0.5rem;
+            }
+
+            .btn {
+                padding: 0.6rem 0.8rem;
+                font-size: 0.8rem;
+                min-width: 70px;
+            }
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #10b981;
+            color: white;
+            padding: 0.75rem 1rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>HTML Viewer</h1>
+            <p>Paste your HTML code and see it rendered instantly</p>
+        </div>
+
+        <div class="editor-section">
+            <div class="section-header">HTML Code Editor</div>
+            <textarea 
+                class="code-input" 
+                id="htmlInput" 
+                placeholder="Paste your HTML code here..."><!DOCTYPE html>
+<html>
+<head>
+    <title>Sample Page</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        h1 { color: #333; }
+        .box { background: #f0f0f0; padding: 15px; border-radius: 5px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Hello World!</h1>
+    <div class="box">
+        <p>This is a sample HTML page. Edit the code above to see changes here.</p>
+        <button onclick="alert('Button clicked!')">Click me</button>
+    </div>
+</body>
+</html></textarea>
+            
+            <div class="controls">
+                <button class="btn btn-primary" id="updateBtn">Update Preview</button>
+                <button class="btn btn-secondary" id="copyBtn">Copy Code</button>
+                <button class="btn btn-danger" id="clearBtn" ontouchstart="clearCode()" onclick="clearCode()">Clear</button>
+            </div>
+        </div>
+
+        <div class="editor-section">
+            <div class="section-header">Live Preview</div>
+            <iframe class="preview-frame" id="previewFrame"></iframe>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const htmlInput = document.getElementById('htmlInput');
+        const previewFrame = document.getElementById('previewFrame');
+        const toast = document.getElementById('toast');
+        const updateBtn = document.getElementById('updateBtn');
+        const copyBtn = document.getElementById('copyBtn');
+        const clearBtn = document.getElementById('clearBtn');
+
+        // Add event listeners
+        updateBtn.addEventListener('click', updatePreview);
+        copyBtn.addEventListener('click', copyCode);
+        clearBtn.addEventListener('click', clearCode);
+
+        // Auto-update preview on input
+        htmlInput.addEventListener('input', debounce(updatePreview, 500));
+
+        // Initial preview update
+        updatePreview();
+
+        function updatePreview() {
+            const htmlCode = htmlInput.value;
+            try {
+                // Use srcdoc for better mobile compatibility
+                previewFrame.srcdoc = htmlCode;
+                
+                // Fallback for older browsers that don't support srcdoc
+                if (!previewFrame.srcdoc) {
+                    const encodedHtml = 'data:text/html;charset=utf-8,' + encodeURIComponent(htmlCode);
+                    previewFrame.src = encodedHtml;
+                }
+            } catch (error) {
+                console.error('Error updating preview:', error);
+                showToast('Error updating preview');
+                
+                // Last resort fallback
+                try {
+                    const doc = previewFrame.contentDocument || previewFrame.contentWindow.document;
+                    doc.open();
+                    doc.write(htmlCode);
+                    doc.close();
+                } catch (fallbackError) {
+                    console.error('Fallback also failed:', fallbackError);
+                }
+            }
+        }
+
+        function copyCode() {
+            htmlInput.select();
+            htmlInput.setSelectionRange(0, 99999); // For mobile devices
+            
+            navigator.clipboard.writeText(htmlInput.value).then(() => {
+                showToast('Code copied to clipboard!');
+            }).catch(() => {
+                // Fallback for older browsers
+                document.execCommand('copy');
+                showToast('Code copied to clipboard!');
+            });
+        }
+
+        function clearCode() {
+            console.log('Clear button clicked!');
+            try {
+                const textarea = document.getElementById('htmlInput');
+                console.log('Textarea found:', textarea);
+                console.log('Current value length:', textarea.value.length);
+                
+                textarea.value = '';
+                console.log('Value cleared, new length:', textarea.value.length);
+                
+                updatePreview();
+                showToast('Code cleared');
+                
+                // Force a visual update
+                textarea.style.color = '#999';
+                setTimeout(() => {
+                    textarea.style.color = '#334155';
+                }, 100);
+                
+            } catch (error) {
+                console.error('Error in clearCode:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+
+        function showToast(message) {
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Handle mobile keyboard
+        if ('ontouchstart' in window) {
+            htmlInput.addEventListener('focus', () => {
+                setTimeout(() => {
+                    window.scrollTo(0, htmlInput.offsetTop - 10);
+                }, 300);
+            });
+        }
+    </script>
+</body>
+</html>
