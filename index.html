@@ -1,206 +1,189 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTML Viewer 2</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HTML Viewer</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+        font-family: system-ui, sans-serif;
+        background: #0f172a;
+        color: #cbd5e1;
+        line-height: 1.5;
+    }
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 1rem;
+        transition: all 0.3s ease;
+    }
+    .header { text-align: center; margin-bottom: 2rem; }
+    .header h1 { font-size: 1.5rem; color: #cbd5e1; margin-bottom: 0.5rem; }
+    .header p { color: #64748b; font-size: 0.9rem; }
+    .editor-section {
+        background: #1e293b;
+        border-radius: 10px;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+    .section-header {
+        background: #334155;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #475569;
+        font-weight: 500;
+        font-size: 0.9rem;
+        color: #e2e8f0;
+    }
+    .code-input {
+        width: 100%;
+        min-height: 200px;
+        padding: 1rem;
+        border: none;
+        outline: none;
+        font-family: 'Consolas', monospace;
+        font-size: 0.85rem;
+        color: #e2e8f0;
+        background: #0f172a;
+        resize: vertical;
+    }
+    .preview-frame {
+        width: 100%;
+        min-height: 350px;
+        border: none;
+        background: white;
+        transition: all 0.3s ease;
+    }
+    .controls {
+        display: flex;
+        gap: 0.75rem;
+        padding: 1rem;
+        background: #1e293b;
+        border-top: 1px solid #475569;
+        flex-wrap: wrap;
+    }
+    .btn {
+        padding: 0.6rem 1rem;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        flex: 1;
+        min-width: 80px;
+    }
+    .btn-primary { background: #3b82f6; color: white; }
+    .btn-primary:hover { background: #2563eb; }
+    .btn-secondary { background: #475569; color: #f1f5f9; }
+    .btn-secondary:hover { background: #64748b; }
+    .btn-danger { background: #ef4444; color: white; }
+    .btn-danger:hover { background: #dc2626; }
+    .toast {
+        position: fixed;
+        top: 20px; right: 20px;
+        background: #10b981;
+        color: white;
+        padding: 0.75rem 1rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        opacity: 0;
+        transform: translateX(100%);
+        transition: all 0.3s;
+        z-index: 1000;
+    }
+    .toast.show { opacity: 1; transform: translateX(0); }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-            background: #f8fafc;
-            color: #334155;
-            line-height: 1.5;
-        }
-
-        .container { max-width: 1200px; margin: 0 auto; padding: 1rem; }
-        .header { text-align: center; margin-bottom: 2rem; }
-        .header h1 { font-size: 1.5rem; font-weight: 600; color: #1e293b; margin-bottom: 0.5rem; }
-        .header p { color: #64748b; font-size: 0.9rem; }
-
-        .editor-section {
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            margin-bottom: 1.5rem;
-            overflow: hidden;
-        }
-
-        .section-header {
-            background: #f1f5f9;
-            padding: 0.75rem 1rem;
-            border-bottom: 1px solid #e2e8f0;
-            font-weight: 500;
-            font-size: 0.9rem;
-            color: #475569;
-        }
-
-        .code-input {
-            width: 100%;
-            min-height: 200px;
-            padding: 1rem;
-            border: none;
-            outline: none;
-            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-            font-size: 0.85rem;
-            line-height: 1.4;
-            resize: vertical;
-            background: #fafafa;
-        }
-
-        .preview-frame { width: 100%; min-height: 300px; border: none; background: white; }
-
-        .controls {
-            display: flex;
-            gap: 0.75rem;
-            padding: 1rem;
-            background: #f8fafc;
-            border-top: 1px solid #e2e8f0;
-            flex-wrap: wrap;
-        }
-
-        .btn {
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            flex: 1;
-            min-width: 80px;
-        }
-
-        .btn-primary { background: #3b82f6; color: white; }
-        .btn-primary:hover { background: #2563eb; }
-        .btn-secondary { background: #e2e8f0; color: #475569; }
-        .btn-secondary:hover { background: #cbd5e1; }
-        .btn-danger { background: #ef4444; color: white; }
-        .btn-danger:hover { background: #dc2626; }
-
-        @media (max-width: 768px) {
-            .container { padding: 0.5rem; }
-            .header h1 { font-size: 1.25rem; }
-            .code-input { font-size: 0.8rem; min-height: 150px; }
-            .preview-frame { min-height: 250px; }
-            .controls { padding: 0.75rem; gap: 0.5rem; }
-            .btn { padding: 0.6rem 0.8rem; font-size: 0.8rem; min-width: 70px; }
-        }
-
-        .toast {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: #10b981;
-            color: white;
-            padding: 0.75rem 1rem;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            opacity: 0;
-            transform: translateX(100%);
-            transition: all 0.3s;
-            z-index: 1000;
-        }
-
-        .toast.show { opacity: 1; transform: translateX(0); }
-    </style>
+    /* Hide editor when in preview-only mode */
+    .full-preview .editor-section:first-of-type,
+    .full-preview .header {
+        display: none;
+    }
+    .full-preview .preview-frame {
+        min-height: 95vh;
+    }
+</style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>HTML Viewer</h1>
-            <p>Paste your HTML code and see it rendered instantly</p>
-        </div>
+<div class="container" id="mainContainer">
+    <div class="header">
+        <h1>HTML Viewer</h1>
+        <p>Paste your HTML code and see it rendered instantly</p>
+    </div>
 
-        <div class="editor-section">
-            <div class="section-header">HTML Code Editor</div>
-            <textarea class="code-input" id="htmlInput" placeholder="Paste your HTML code here..."></textarea>
-            
-            <div class="controls">
-                <button class="btn btn-primary" id="updateBtn">Update Preview</button>
-                <button class="btn btn-secondary" id="copyBtn">Copy Code</button>
-                <button class="btn btn-danger" id="clearBtn" onclick="clearCode()">Clear</button>
-                <button class="btn btn-primary" id="fullPreviewBtn">Full Preview</button>
-            </div>
-        </div>
-
-        <div class="editor-section">
-            <div class="section-header">Live Preview</div>
-            <iframe class="preview-frame" id="previewFrame"></iframe>
+    <div class="editor-section">
+        <div class="section-header">HTML Code Editor</div>
+        <textarea class="code-input" id="htmlInput" placeholder="Paste your HTML code here..."></textarea>
+        <div class="controls">
+            <button class="btn btn-primary" id="updateBtn">Update Preview</button>
+            <button class="btn btn-secondary" id="copyBtn">Copy Code</button>
+            <button class="btn btn-danger" id="clearBtn">Clear</button>
+            <button class="btn btn-primary" id="togglePreviewBtn">Full Preview</button>
         </div>
     </div>
 
-    <div class="toast" id="toast"></div>
+    <div class="editor-section">
+        <div class="section-header">Live Preview</div>
+        <iframe class="preview-frame" id="previewFrame"></iframe>
+    </div>
+</div>
 
-    <script>
-        const htmlInput = document.getElementById('htmlInput');
-        const previewFrame = document.getElementById('previewFrame');
-        const toast = document.getElementById('toast');
-        const updateBtn = document.getElementById('updateBtn');
-        const copyBtn = document.getElementById('copyBtn');
-        const clearBtn = document.getElementById('clearBtn');
-        const fullPreviewBtn = document.getElementById('fullPreviewBtn');
+<div class="toast" id="toast"></div>
 
-        updateBtn.addEventListener('click', updatePreview);
-        copyBtn.addEventListener('click', copyCode);
-        clearBtn.addEventListener('click', clearCode);
-        fullPreviewBtn.addEventListener('click', toggleFullPreview);
+<script>
+    const htmlInput = document.getElementById('htmlInput');
+    const previewFrame = document.getElementById('previewFrame');
+    const toast = document.getElementById('toast');
+    const mainContainer = document.getElementById('mainContainer');
+    const updateBtn = document.getElementById('updateBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const togglePreviewBtn = document.getElementById('togglePreviewBtn');
+    let isFullPreview = false;
 
-        htmlInput.addEventListener('input', debounce(updatePreview, 500));
+    updateBtn.addEventListener('click', updatePreview);
+    copyBtn.addEventListener('click', copyCode);
+    clearBtn.addEventListener('click', clearCode);
+    togglePreviewBtn.addEventListener('click', toggleFullPreview);
+    htmlInput.addEventListener('input', debounce(updatePreview, 500));
+
+    function updatePreview() {
+        previewFrame.srcdoc = htmlInput.value || "<h3 style='text-align:center;color:#94a3b8;'>Preview will appear here...</h3>";
+    }
+
+    function copyCode() {
+        navigator.clipboard.writeText(htmlInput.value).then(() => showToast('Code copied!'));
+    }
+
+    function clearCode() {
+        htmlInput.value = '';
         updatePreview();
+        showToast('Code cleared');
+    }
 
-        function updatePreview() {
-            const htmlCode = htmlInput.value;
-            previewFrame.srcdoc = htmlCode || "<h3 style='text-align:center;color:#94a3b8;'>Preview will appear here...</h3>";
-        }
+    function toggleFullPreview() {
+        isFullPreview = !isFullPreview;
+        mainContainer.classList.toggle('full-preview', isFullPreview);
+        togglePreviewBtn.textContent = isFullPreview ? 'Exit Preview' : 'Full Preview';
+    }
 
-        function copyCode() {
-            navigator.clipboard.writeText(htmlInput.value).then(() => {
-                showToast('Code copied to clipboard!');
-            }).catch(() => {
-                document.execCommand('copy');
-                showToast('Code copied to clipboard!');
-            });
-        }
+    function showToast(msg) {
+        toast.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
 
-        function clearCode() {
-            htmlInput.value = '';
-            updatePreview();
-            showToast('Code cleared');
-        }
+    function debounce(fn, delay) {
+        let timer;
+        return function(...args) {
+            clearTimeout(timer);
+            timer = setTimeout(() => fn(...args), delay);
+        };
+    }
 
-        function toggleFullPreview() {
-            if (previewFrame.requestFullscreen) {
-                previewFrame.requestFullscreen();
-            } else if (previewFrame.webkitRequestFullscreen) {
-                previewFrame.webkitRequestFullscreen();
-            } else if (previewFrame.msRequestFullscreen) {
-                previewFrame.msRequestFullscreen();
-            } else {
-                showToast('Fullscreen not supported');
-            }
-        }
-
-        function showToast(message) {
-            toast.textContent = message;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
-        }
-
-        function debounce(func, wait) {
-            let timeout;
-            return function(...args) {
-                clearTimeout(timeout);
-                timeout = setTimeout(() => func(...args), wait);
-            };
-        }
-
-        if ('ontouchstart' in window) {
-            htmlInput.addEventListener('focus', () => {
-                setTimeout(() => window.scrollTo(0, htmlInput.offsetTop - 10), 300);
-            });
-        }
-    </script>
+    updatePreview();
+</script>
 </body>
 </html>
