@@ -5,11 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HTML Viewer</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
@@ -18,28 +14,10 @@
             line-height: 1.5;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 1rem;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-
-        .header h1 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #1e293b;
-            margin-bottom: 0.5rem;
-        }
-
-        .header p {
-            color: #64748b;
-            font-size: 0.9rem;
-        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 1rem; }
+        .header { text-align: center; margin-bottom: 2rem; }
+        .header h1 { font-size: 1.5rem; font-weight: 600; color: #1e293b; margin-bottom: 0.5rem; }
+        .header p { color: #64748b; font-size: 0.9rem; }
 
         .editor-section {
             background: white;
@@ -71,12 +49,7 @@
             background: #fafafa;
         }
 
-        .preview-frame {
-            width: 100%;
-            min-height: 300px;
-            border: none;
-            background: white;
-        }
+        .preview-frame { width: 100%; min-height: 300px; border: none; background: white; }
 
         .controls {
             display: flex;
@@ -99,61 +72,20 @@
             min-width: 80px;
         }
 
-        .btn-primary {
-            background: #3b82f6;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #2563eb;
-        }
-
-        .btn-secondary {
-            background: #e2e8f0;
-            color: #475569;
-        }
-
-        .btn-secondary:hover {
-            background: #cbd5e1;
-        }
-
-        .btn-danger {
-            background: #ef4444;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #dc2626;
-        }
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-secondary { background: #e2e8f0; color: #475569; }
+        .btn-secondary:hover { background: #cbd5e1; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-danger:hover { background: #dc2626; }
 
         @media (max-width: 768px) {
-            .container {
-                padding: 0.5rem;
-            }
-
-            .header h1 {
-                font-size: 1.25rem;
-            }
-
-            .code-input {
-                font-size: 0.8rem;
-                min-height: 150px;
-            }
-
-            .preview-frame {
-                min-height: 250px;
-            }
-
-            .controls {
-                padding: 0.75rem;
-                gap: 0.5rem;
-            }
-
-            .btn {
-                padding: 0.6rem 0.8rem;
-                font-size: 0.8rem;
-                min-width: 70px;
-            }
+            .container { padding: 0.5rem; }
+            .header h1 { font-size: 1.25rem; }
+            .code-input { font-size: 0.8rem; min-height: 150px; }
+            .preview-frame { min-height: 250px; }
+            .controls { padding: 0.75rem; gap: 0.5rem; }
+            .btn { padding: 0.6rem 0.8rem; font-size: 0.8rem; min-width: 70px; }
         }
 
         .toast {
@@ -171,10 +103,7 @@
             z-index: 1000;
         }
 
-        .toast.show {
-            opacity: 1;
-            transform: translateX(0);
-        }
+        .toast.show { opacity: 1; transform: translateX(0); }
     </style>
 </head>
 <body>
@@ -186,15 +115,13 @@
 
         <div class="editor-section">
             <div class="section-header">HTML Code Editor</div>
-            <textarea 
-                class="code-input" 
-                id="htmlInput" 
-                placeholder="Paste your HTML code here..."></textarea>
+            <textarea class="code-input" id="htmlInput" placeholder="Paste your HTML code here..."></textarea>
             
             <div class="controls">
                 <button class="btn btn-primary" id="updateBtn">Update Preview</button>
                 <button class="btn btn-secondary" id="copyBtn">Copy Code</button>
-                <button class="btn btn-danger" id="clearBtn" ontouchstart="clearCode()" onclick="clearCode()">Clear</button>
+                <button class="btn btn-danger" id="clearBtn" onclick="clearCode()">Clear</button>
+                <button class="btn btn-primary" id="fullPreviewBtn">Full Preview</button>
             </div>
         </div>
 
@@ -213,109 +140,65 @@
         const updateBtn = document.getElementById('updateBtn');
         const copyBtn = document.getElementById('copyBtn');
         const clearBtn = document.getElementById('clearBtn');
+        const fullPreviewBtn = document.getElementById('fullPreviewBtn');
 
-        // Add event listeners
         updateBtn.addEventListener('click', updatePreview);
         copyBtn.addEventListener('click', copyCode);
         clearBtn.addEventListener('click', clearCode);
+        fullPreviewBtn.addEventListener('click', toggleFullPreview);
 
-        // Auto-update preview on input
         htmlInput.addEventListener('input', debounce(updatePreview, 500));
-
-        // Initial preview update
         updatePreview();
 
         function updatePreview() {
             const htmlCode = htmlInput.value;
-            try {
-                // Use srcdoc for better mobile compatibility
-                previewFrame.srcdoc = htmlCode;
-                
-                // Fallback for older browsers that don't support srcdoc
-                if (!previewFrame.srcdoc) {
-                    const encodedHtml = 'data:text/html;charset=utf-8,' + encodeURIComponent(htmlCode);
-                    previewFrame.src = encodedHtml;
-                }
-            } catch (error) {
-                console.error('Error updating preview:', error);
-                showToast('Error updating preview');
-                
-                // Last resort fallback
-                try {
-                    const doc = previewFrame.contentDocument || previewFrame.contentWindow.document;
-                    doc.open();
-                    doc.write(htmlCode);
-                    doc.close();
-                } catch (fallbackError) {
-                    console.error('Fallback also failed:', fallbackError);
-                }
-            }
+            previewFrame.srcdoc = htmlCode || "<h3 style='text-align:center;color:#94a3b8;'>Preview will appear here...</h3>";
         }
 
         function copyCode() {
-            htmlInput.select();
-            htmlInput.setSelectionRange(0, 99999); // For mobile devices
-            
             navigator.clipboard.writeText(htmlInput.value).then(() => {
                 showToast('Code copied to clipboard!');
             }).catch(() => {
-                // Fallback for older browsers
                 document.execCommand('copy');
                 showToast('Code copied to clipboard!');
             });
         }
 
         function clearCode() {
-            console.log('Clear button clicked!');
-            try {
-                const textarea = document.getElementById('htmlInput');
-                console.log('Textarea found:', textarea);
-                console.log('Current value length:', textarea.value.length);
-                
-                textarea.value = '';
-                console.log('Value cleared, new length:', textarea.value.length);
-                
-                updatePreview();
-                showToast('Code cleared');
-                
-                // Force a visual update
-                textarea.style.color = '#999';
-                setTimeout(() => {
-                    textarea.style.color = '#334155';
-                }, 100);
-                
-            } catch (error) {
-                console.error('Error in clearCode:', error);
-                alert('Error: ' + error.message);
+            htmlInput.value = '';
+            updatePreview();
+            showToast('Code cleared');
+        }
+
+        function toggleFullPreview() {
+            if (previewFrame.requestFullscreen) {
+                previewFrame.requestFullscreen();
+            } else if (previewFrame.webkitRequestFullscreen) {
+                previewFrame.webkitRequestFullscreen();
+            } else if (previewFrame.msRequestFullscreen) {
+                previewFrame.msRequestFullscreen();
+            } else {
+                showToast('Fullscreen not supported');
             }
         }
 
         function showToast(message) {
             toast.textContent = message;
             toast.classList.add('show');
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
+            setTimeout(() => toast.classList.remove('show'), 3000);
         }
 
         function debounce(func, wait) {
             let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
+            return function(...args) {
                 clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
+                timeout = setTimeout(() => func(...args), wait);
             };
         }
 
-        // Handle mobile keyboard
         if ('ontouchstart' in window) {
             htmlInput.addEventListener('focus', () => {
-                setTimeout(() => {
-                    window.scrollTo(0, htmlInput.offsetTop - 10);
-                }, 300);
+                setTimeout(() => window.scrollTo(0, htmlInput.offsetTop - 10), 300);
             });
         }
     </script>
